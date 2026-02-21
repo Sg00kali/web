@@ -1,0 +1,33 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #000;
+  color: #33ff33;
+  font-family: monospace;
+  overflow: hidden;
+}
+
+#terminal {
+  padding: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  height: 100vh;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+.prompt {
+  color: #33ff33;
+}
+
+.ok {
+  color: #00ff00;
+}
+
+.error {
+  color: red;
+}
