@@ -1,4 +1,8 @@
 const terminal = document.getElementById("terminal");
+const input = document.getElementById("mobileInput");
+
+input.focus();
+document.body.addEventListener("click", () => input.focus());
 
 let stage = "boot";
 let username = "";
@@ -44,16 +48,16 @@ function bootSequence() {
   if (logIndex < kernelLogs.length) {
     println(kernelLogs[logIndex]);
     logIndex++;
-    setTimeout(bootSequence, 120);
+    setTimeout(bootSequence, 100);
   } else {
     stage = "loginUser";
     print("login: ");
   }
 }
 
-/* Keyboard */
+/* Keyboard Input */
 
-document.addEventListener("keydown", function(e) {
+input.addEventListener("keydown", function(e) {
 
   if (stage === "loginUser") handleUsernameInput(e);
   else if (stage === "loginPass") handlePasswordInput(e);
@@ -80,6 +84,8 @@ function handleUsernameInput(e) {
     username += e.key;
     print(e.key);
   }
+
+  input.value = "";
 }
 
 /* Login Password */
@@ -89,6 +95,7 @@ function handlePasswordInput(e) {
   if (e.key === "Enter") {
 
     if (username === "kali" && password === "admin@123") {
+
       loginAttempts = 0;
       currentUser = username;
       println("\n\nLogin successful.\n");
@@ -97,6 +104,7 @@ function handlePasswordInput(e) {
     }
 
     else {
+
       loginAttempts++;
       println("\nLogin incorrect");
 
@@ -123,6 +131,8 @@ function handlePasswordInput(e) {
     password += e.key;
     print("*");
   }
+
+  input.value = "";
 }
 
 /* Shell */
@@ -133,14 +143,15 @@ function showPrompt() {
 
 function handleShellInput(e) {
 
-  // Ctrl + D logout
   if (e.ctrlKey && e.key === "d") {
     println("");
     logout();
+    input.value = "";
     return;
   }
 
   if (e.key === "Enter") {
+
     println("");
     executeCommand(commandBuffer.trim());
 
@@ -160,6 +171,8 @@ function handleShellInput(e) {
     commandBuffer += e.key;
     print(e.key);
   }
+
+  input.value = "";
 }
 
 /* Commands */
@@ -234,8 +247,7 @@ function executeCommand(cmd) {
 /* Logout */
 
 function logout() {
-  println("logout");
-  println("");
+  println("logout\n");
   stage = "loginUser";
   username = "";
   password = "";
@@ -280,6 +292,8 @@ function handleSudoInput(e) {
     sudoPassword += e.key;
     print("*");
   }
+
+  input.value = "";
 }
 
 /* Shutdown */
