@@ -1,188 +1,125 @@
 const terminal = document.getElementById("terminal");
-const input = document.getElementById("mobileInput");
+const input = document.getElementById("cmdInput");
+const promptEl = document.getElementById("prompt");
 
 let stage = "boot";
 let username = "";
 let password = "";
 let currentUser = "";
-let commandBuffer = "";
 let loginAttempts = 0;
 
 let sudoAction = null;
-let sudoPassword = "";
 
-const kernelLogs = [
+/* ---------- Utility ---------- */
+
+function println(text = "") {
+  terminal.innerHTML += text + "\n";
+  window.scrollTo(0, document.body.scrollHeight);
+}
+
+function setPrompt(text) {
+  promptEl.textContent = text;
+  input.value = "";
+  input.focus();
+}
+
+/* ---------- Boot ---------- */
+
+const bootLines = [
 "[    0.000000] Linux version 6.2.0-portfolio",
 "[    0.120431] Initializing hardware...",
 "[    0.342991] Mounting filesystem...",
 "[    0.812331] Starting system services...",
-"[    1.534221] Network Manager started. [  OK  ]",
-"[    2.331992] Display Manager started. [  OK  ]",
+"[    1.534221] Network Manager started. [ OK ]",
+"[    2.331992] Display Manager started. [ OK ]",
 "",
 "Ubuntu 22.04 LTS portfolio tty1",
 ""
 ];
 
-let logIndex = 0;
+let i = 0;
 
-/* ---------- UTIL ---------- */
-
-function print(text = "") {
-  terminal.innerHTML += text;
-  terminal.scrollTop = terminal.scrollHeight;
-}
-
-function println(text = "") {
-  print(text + "\n");
-}
-
-function focusInput() {
-  input.focus();
-}
-
-/* Force focus when tapping anywhere */
-document.addEventListener("click", focusInput);
-document.addEventListener("touchstart", focusInput);
-
-/* ---------- BOOT ---------- */
-
-function bootSequence() {
-  if (logIndex < kernelLogs.length) {
-    println(kernelLogs[logIndex]);
-    logIndex++;
-    setTimeout(bootSequence, 100);
+function boot() {
+  if (i < bootLines.length) {
+    println(bootLines[i]);
+    i++;
+    setTimeout(boot, 100);
   } else {
     stage = "loginUser";
-    print("login: ");
-    focusInput();
+    setPrompt("login:");
   }
 }
 
-/* ---------- INPUT HANDLER ---------- */
+/* ---------- Input Handler ---------- */
 
 input.addEventListener("keydown", function(e) {
 
-  if (stage === "loginUser") handleUsername(e);
-  else if (stage === "loginPass") handlePassword(e);
-  else if (stage === "shell") handleShell(e);
-  else if (stage === "sudoPass") handleSudo(e);
+  if (e.key !== "Enter") return;
 
-});
+  const value = input.value.trim();
+  println(promptEl.textContent + " " + value);
 
-/* ---------- LOGIN ---------- */
-
-function handleUsername(e) {
-
-  if (e.key === "Enter") {
+  if (stage === "loginUser") {
+    username = value;
     stage = "loginPass";
-    print("\nPassword: ");
+    setPrompt("Password:");
+    input.type = "password";
+    return;
   }
 
-  else if (e.key === "Backspace") {
-    username = username.slice(0, -1);
-    terminal.innerHTML = terminal.innerHTML.slice(0, -1);
-  }
+  if (stage === "loginPass") {
+    input.type = "text";
 
-  else if (e.key.length === 1) {
-    username += e.key;
-    print(e.key);
-  }
-
-  input.value = "";
-}
-
-function handlePassword(e) {
-
-  if (e.key === "Enter") {
-
-    if (username === "kali" && password === "admin@123") {
-
+    if (username === "kali" && value === "admin@123") {
       loginAttempts = 0;
       currentUser = username;
-      println("\n\nLogin successful.\n");
+      println("Login successful.\n");
       stage = "shell";
-      showPrompt();
-    }
-
-    else {
-
+      setPrompt(currentUser + "@portfolio:~$");
+    } else {
       loginAttempts++;
-      println("\nLogin incorrect");
+      println("Login incorrect");
 
       if (loginAttempts >= 3) {
         println("System locked.");
         stage = "locked";
+        input.disabled = true;
         return;
       }
 
-      println("");
-      username = "";
-      password = "";
       stage = "loginUser";
-      print("login: ");
+      setPrompt("login:");
     }
-  }
-
-  else if (e.key === "Backspace") {
-    password = password.slice(0, -1);
-    terminal.innerHTML = terminal.innerHTML.slice(0, -1);
-  }
-
-  else if (e.key.length === 1) {
-    password += e.key;
-    print("*");
-  }
-
-  input.value = "";
-}
-
-/* ---------- SHELL ---------- */
-
-function showPrompt() {
-  print(currentUser + "@portfolio:~$ ");
-}
-
-function handleShell(e) {
-
-  if (e.ctrlKey && e.key === "d") {
-    println("");
-    logout();
-    input.value = "";
     return;
   }
 
-  if (e.key === "Enter") {
-    println("");
-    executeCommand(commandBuffer.trim());
-
-    if (stage === "shell") showPrompt();
-    commandBuffer = "";
+  if (stage === "shell") {
+    executeCommand(value);
   }
 
-  else if (e.key === "Backspace") {
-    commandBuffer = commandBuffer.slice(0, -1);
-    terminal.innerHTML = terminal.innerHTML.slice(0, -1);
+  if (stage === "sudoPass") {
+    if (value === "admin@123") {
+      if (sudoAction === "shutdown") shutdown();
+      if (sudoAction === "restart") restart();
+    } else {
+      println("Sorry, try again.");
+      stage = "shell";
+      setPrompt(currentUser + "@portfolio:~$");
+    }
   }
 
-  else if (e.key.length === 1) {
-    commandBuffer += e.key;
-    print(e.key);
-  }
+});
 
-  input.value = "";
-}
-
-/* ---------- COMMANDS ---------- */
+/* ---------- Commands ---------- */
 
 function executeCommand(cmd) {
 
   switch(cmd) {
 
     case "help":
-      println("help, clear, whoami, date, ls");
-      println("about, projects, skills");
-      println("exit");
-      println("sudo shutdown, sudo restart");
+      println("help clear whoami date ls");
+      println("about projects skills");
+      println("exit sudo shutdown sudo restart");
       break;
 
     case "clear":
@@ -215,93 +152,49 @@ function executeCommand(cmd) {
       break;
 
     case "exit":
-      logout();
+      stage = "loginUser";
+      setPrompt("login:");
       break;
 
     case "sudo shutdown":
-      requestSudo("shutdown");
-      break;
+      sudoAction = "shutdown";
+      stage = "sudoPass";
+      setPrompt("[sudo] password for " + currentUser + ":");
+      input.type = "password";
+      return;
 
     case "sudo restart":
-      requestSudo("restart");
-      break;
+      sudoAction = "restart";
+      stage = "sudoPass";
+      setPrompt("[sudo] password for " + currentUser + ":");
+      input.type = "password";
+      return;
 
     default:
-      if (cmd !== "") println(cmd + ": command not found");
+      println(cmd + ": command not found");
+  }
+
+  if (stage === "shell") {
+    setPrompt(currentUser + "@portfolio:~$");
   }
 }
 
-/* ---------- LOGOUT ---------- */
-
-function logout() {
-  println("logout\n");
-  stage = "loginUser";
-  username = "";
-  password = "";
-  currentUser = "";
-  commandBuffer = "";
-  print("login: ");
-}
-
-/* ---------- SUDO ---------- */
-
-function requestSudo(action) {
-  sudoAction = action;
-  sudoPassword = "";
-  stage = "sudoPass";
-  print("[sudo] password for " + currentUser + ": ");
-}
-
-function handleSudo(e) {
-
-  if (e.key === "Enter") {
-
-    if (sudoPassword === "admin@123") {
-      println("");
-      if (sudoAction === "shutdown") shutdown();
-      if (sudoAction === "restart") restart();
-    }
-
-    else {
-      println("\nSorry, try again.");
-      stage = "shell";
-      showPrompt();
-    }
-  }
-
-  else if (e.key === "Backspace") {
-    sudoPassword = sudoPassword.slice(0, -1);
-    terminal.innerHTML = terminal.innerHTML.slice(0, -1);
-  }
-
-  else if (e.key.length === 1) {
-    sudoPassword += e.key;
-    print("*");
-  }
-
-  input.value = "";
-}
-
-/* ---------- POWER ---------- */
+/* ---------- Power ---------- */
 
 function shutdown() {
-  stage = "off";
   println("Stopping services...");
   println("Power down.");
-  setTimeout(() => terminal.innerHTML = "", 800);
+  input.disabled = true;
 }
 
 function restart() {
-  stage = "boot";
   terminal.innerHTML = "";
-  logIndex = 0;
-  username = "";
-  password = "";
-  commandBuffer = "";
-  loginAttempts = 0;
-  setTimeout(bootSequence, 500);
+  input.disabled = false;
+  stage = "boot";
+  i = 0;
+  setTimeout(boot, 300);
 }
 
-/* ---------- START ---------- */
+/* ---------- Start ---------- */
 
-bootSequence();
+boot();
