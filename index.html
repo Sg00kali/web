@@ -3,23 +3,42 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portfolio OS</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="css/boot.css">
+<link rel="stylesheet" href="css/desktop.css">
 </head>
 <body>
 
-<div id="terminal"></div>
+<div id="terminal-system">
+  <div id="terminal"></div>
 
-<div id="input-line">
-  <span id="prompt"></span>
-  <input 
-    id="cmdInput"
-    autocomplete="off"
-    autocorrect="off"
-    autocapitalize="off"
-    spellcheck="false"
-  />
+  <div id="input-line">
+    <span id="prompt"></span>
+    <input 
+      id="cmdInput"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="off"
+      spellcheck="false"
+    />
+  </div>
 </div>
 
-<script src="boot.js"></script>
+<div id="desktop" class="hidden">
+  <div id="topbar">
+    <div>Activities</div>
+    <div id="clock"></div>
+  </div>
+
+  <div id="dock">
+    <div class="dock-item" data-app="about">About</div>
+    <div class="dock-item" data-app="projects">Projects</div>
+    <div class="dock-item" data-app="skills">Skills</div>
+  </div>
+
+  <div id="windows"></div>
+</div>
+
+<script src="js/boot.js"></script>
+<script src="js/desktop.js"></script>
 </body>
 </html>
