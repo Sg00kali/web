@@ -1,0 +1,63 @@
+.hidden {
+  display: none;
+}
+
+#desktop {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #300a24, #1a0012);
+  color: white;
+  font-family: Ubuntu, sans-serif;
+}
+
+#topbar {
+  height: 32px;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+  font-size: 13px;
+}
+
+#dock {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 15px;
+}
+
+.dock-item {
+  padding: 10px 15px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.dock-item:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.window {
+  position: absolute;
+  top: 100px;
+  left: 200px;
+  width: 400px;
+  background: #1e1e1e;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+
+.window-header {
+  background: #333;
+  padding: 8px;
+  font-size: 13px;
+}
+
+.window-content {
+  padding: 15px;
+}
